@@ -1,3 +1,6 @@
 {
-    "jdk.advanced.disable.nbjavac": false
+    "jdk.advanced.disable.nbjavac": false,
+    "gradle.autoDetect": "off",
+    "gradle.disableAutoServer": true,
+    "java.autobuild.enabled": false
 }
