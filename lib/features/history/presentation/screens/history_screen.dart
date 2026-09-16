@@ -193,123 +193,123 @@ class _HistoryScreenState extends State<HistoryScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-            Center(
-              child: Container(
-                width: 36,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 20),
-                decoration: BoxDecoration(
-                  color: AppColors.textMutedDark,
-                  borderRadius: BorderRadius.circular(2),
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 20),
+                  decoration: BoxDecoration(
+                    color: AppColors.textMutedDark,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
               ),
-            ),
-            Row(
-              children: [
-                Text(
-                  'Trip ${ride.id}',
-                  style: TextStyle(
-                    color: isDark ? AppColors.primary : AppColors.uberBlack,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-                const Spacer(),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.success.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    ride.status,
-                    style: const TextStyle(
-                      color: AppColors.success,
+              Row(
+                children: [
+                  Text(
+                    'Trip ${ride.id}',
+                    style: TextStyle(
+                      color: isDark ? AppColors.primary : AppColors.uberBlack,
                       fontWeight: FontWeight.bold,
-                      fontSize: 12,
+                      fontSize: 16,
                     ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            _detailRow(
-              Icons.my_location_rounded,
-              'Pickup',
-              ride.pickupAddress,
-              isDark,
-              AppColors.primary,
-            ),
-            const SizedBox(height: 14),
-            _detailRow(
-              Icons.pin_drop_rounded,
-              'Drop',
-              ride.dropAddress,
-              isDark,
-              AppColors.error,
-            ),
-            const SizedBox(height: 14),
-            _detailRow(
-              Icons.person_rounded,
-              'Driver',
-              ride.driverName,
-              isDark,
-              AppColors.textSecondaryDark,
-            ),
-            const SizedBox(height: 14),
-            _detailRow(
-              Icons.directions_car_rounded,
-              'Vehicle',
-              ride.vehicleName,
-              isDark,
-              AppColors.textSecondaryDark,
-            ),
-            const Divider(height: 28),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${ride.dateString} · ${ride.timeString}',
-                      style: TextStyle(
-                        color: isDark
-                            ? AppColors.textSecondaryDark
-                            : AppColors.textSecondaryLight,
-                        fontSize: 13,
-                      ),
+                  const Spacer(),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
                     ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      '💵 Cash Payment',
-                      style: TextStyle(
+                    decoration: BoxDecoration(
+                      color: AppColors.success.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      ride.status,
+                      style: const TextStyle(
                         color: AppColors.success,
                         fontWeight: FontWeight.bold,
                         fontSize: 12,
                       ),
                     ),
-                  ],
-                ),
-                Text(
-                  '₹${ride.fare.toStringAsFixed(2)}',
-                  style: TextStyle(
-                    color: isDark ? AppColors.primary : AppColors.uberBlack,
-                    fontSize: 26,
-                    fontWeight: FontWeight.w800,
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+              const SizedBox(height: 20),
+              _detailRow(
+                Icons.my_location_rounded,
+                'Pickup',
+                ride.pickupAddress,
+                isDark,
+                AppColors.primary,
+              ),
+              const SizedBox(height: 14),
+              _detailRow(
+                Icons.pin_drop_rounded,
+                'Drop',
+                ride.dropAddress,
+                isDark,
+                AppColors.error,
+              ),
+              const SizedBox(height: 14),
+              _detailRow(
+                Icons.person_rounded,
+                'Driver',
+                ride.driverName,
+                isDark,
+                AppColors.textSecondaryDark,
+              ),
+              const SizedBox(height: 14),
+              _detailRow(
+                Icons.directions_car_rounded,
+                'Vehicle',
+                ride.vehicleName,
+                isDark,
+                AppColors.textSecondaryDark,
+              ),
+              const Divider(height: 28),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${ride.dateString} · ${ride.timeString}',
+                        style: TextStyle(
+                          color: isDark
+                              ? AppColors.textSecondaryDark
+                              : AppColors.textSecondaryLight,
+                          fontSize: 13,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      const Text(
+                        '💵 Cash Payment',
+                        style: TextStyle(
+                          color: AppColors.success,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Text(
+                    '₹${ride.fare.toStringAsFixed(2)}',
+                    style: TextStyle(
+                      color: isDark ? AppColors.primary : AppColors.uberBlack,
+                      fontSize: 26,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _detailRow(
     IconData icon,

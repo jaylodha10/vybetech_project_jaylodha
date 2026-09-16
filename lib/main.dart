@@ -8,6 +8,7 @@ import 'features/auth/data/repositories/auth_repository.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'features/booking/data/repositories/booking_repository.dart';
 import 'features/history/data/repositories/history_repository.dart';
+import 'firebase_options.dart';
 
 /// Global notifier so any screen can toggle the app theme
 final themeModeNotifier = ValueNotifier<ThemeMode>(ThemeMode.dark);
@@ -22,6 +23,9 @@ void main() async {
 
   try {
     await Firebase.initializeApp();
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
   } catch (_) {}
 
   runApp(const VybeCabsApp());

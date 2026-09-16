@@ -187,129 +187,129 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                          Center(
-                            child: Container(
-                              width: 36,
-                              height: 4,
-                              margin: const EdgeInsets.only(bottom: 14),
-                              decoration: BoxDecoration(
-                                color: AppColors.textMutedDark,
-                                borderRadius: BorderRadius.circular(2),
+                            Center(
+                              child: Container(
+                                width: 36,
+                                height: 4,
+                                margin: const EdgeInsets.only(bottom: 14),
+                                decoration: BoxDecoration(
+                                  color: AppColors.textMutedDark,
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
                               ),
                             ),
-                          ),
-                          // Fare row
-                          Row(
-                            children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Estimated Fare',
-                                    style: TextStyle(
-                                      color: isDark
-                                          ? AppColors.textSecondaryDark
-                                          : AppColors.textSecondaryLight,
+                            // Fare row
+                            Row(
+                              children: [
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Estimated Fare',
+                                      style: TextStyle(
+                                        color: isDark
+                                            ? AppColors.textSecondaryDark
+                                            : AppColors.textSecondaryLight,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                    Text(
+                                      '₹${trip.fareAmount.toStringAsFixed(0)}',
+                                      style: TextStyle(
+                                        color: isDark
+                                            ? AppColors.primary
+                                            : AppColors.uberBlack,
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const Spacer(),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primary.withValues(
+                                      alpha: 0.2,
+                                    ),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    trip.vehicleCategory.name,
+                                    style: const TextStyle(
+                                      color: AppColors.primary,
+                                      fontWeight: FontWeight.w700,
                                       fontSize: 12,
                                     ),
                                   ),
-                                  Text(
-                                    '₹${trip.fareAmount.toStringAsFixed(0)}',
-                                    style: TextStyle(
-                                      color: isDark
-                                          ? AppColors.primary
-                                          : AppColors.uberBlack,
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.w800,
-                                    ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 14),
+                            DriverInfoCard(
+                              driver: driver,
+                              statusText: _getDriverStatus(state),
+                              onCallPressed: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Call feature coming soon!'),
+                                    behavior: SnackBarBehavior.floating,
                                   ),
-                                ],
-                              ),
-                              const Spacer(),
+                                );
+                              },
+                            ),
+                            if (isDriverArrived) ...[
+                              const SizedBox(height: 14),
                               Container(
                                 padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 6,
+                                  horizontal: 14,
+                                  vertical: 8,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: AppColors.primary.withValues(
-                                    alpha: 0.2,
+                                  color: AppColors.success.withValues(
+                                    alpha: 0.15,
                                   ),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
-                                child: Text(
-                                  trip.vehicleCategory.name,
-                                  style: const TextStyle(
-                                    color: AppColors.primary,
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 12,
-                                  ),
+                                child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.info_outline_rounded,
+                                      color: AppColors.success,
+                                      size: 16,
+                                    ),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      'Driver Arrived! Starting trip automatically...',
+                                      style: TextStyle(
+                                        color: AppColors.success,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
                                 ),
+                              ),
+                              const SizedBox(height: 10),
+                              VybeButton(
+                                text: 'Start Trip Now 🚗',
+                                icon: Icons.play_arrow_rounded,
+                                onPressed: () => context
+                                    .read<TrackingBloc>()
+                                    .add(TrackingTripStarted()),
                               ),
                             ],
-                          ),
-                          const SizedBox(height: 14),
-                          DriverInfoCard(
-                            driver: driver,
-                            statusText: _getDriverStatus(state),
-                            onCallPressed: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Call feature coming soon!'),
-                                  behavior: SnackBarBehavior.floating,
-                                ),
-                              );
-                            },
-                          ),
-                          if (isDriverArrived) ...[
-                            const SizedBox(height: 14),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 14,
-                                vertical: 8,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppColors.success.withValues(
-                                  alpha: 0.15,
-                                ),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: const Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.info_outline_rounded,
-                                    color: AppColors.success,
-                                    size: 16,
-                                  ),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    'Driver Arrived! Starting trip automatically...',
-                                    style: TextStyle(
-                                      color: AppColors.success,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                            VybeButton(
-                              text: 'Start Trip Now 🚗',
-                              icon: Icons.play_arrow_rounded,
-                              onPressed: () => context.read<TrackingBloc>().add(
-                                TrackingTripStarted(),
-                              ),
-                            ),
+                            const SizedBox(height: 16),
                           ],
-                          const SizedBox(height: 16),
-                        ],
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
             ],
           ),
         );
@@ -475,124 +475,128 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-            Container(
-              width: 36,
-              height: 4,
-              margin: const EdgeInsets.only(bottom: 24),
-              decoration: BoxDecoration(
-                color: AppColors.textMutedDark,
-                borderRadius: BorderRadius.circular(2),
+              Container(
+                width: 36,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 24),
+                decoration: BoxDecoration(
+                  color: AppColors.textMutedDark,
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
-            ),
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: AppColors.success.withValues(alpha: 0.15),
-                shape: BoxShape.circle,
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: AppColors.success.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.check_circle_rounded,
+                  color: AppColors.success,
+                  size: 48,
+                ),
               ),
-              child: const Icon(
-                Icons.check_circle_rounded,
-                color: AppColors.success,
-                size: 48,
+              const SizedBox(height: 20),
+              Text(
+                'Trip Completed!',
+                style: TextStyle(
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.textPrimaryLight,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              'Trip Completed!',
-              style: TextStyle(
-                color: isDark
-                    ? AppColors.textPrimaryDark
-                    : AppColors.textPrimaryLight,
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
+              const SizedBox(height: 8),
+              Text(
+                'You have arrived at ${state.trip.dropLocation.title}',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: isDark
+                      ? AppColors.textSecondaryDark
+                      : AppColors.textSecondaryLight,
+                  fontSize: 14,
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'You have arrived at ${state.trip.dropLocation.title}',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: isDark
-                    ? AppColors.textSecondaryDark
-                    : AppColors.textSecondaryLight,
-                fontSize: 14,
-              ),
-            ),
-            const SizedBox(height: 24),
-            VybeCard(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  _summaryRow('From', state.trip.pickupLocation.title, isDark),
-                  const SizedBox(height: 12),
-                  _summaryRow('To', state.trip.dropLocation.title, isDark),
-                  const SizedBox(height: 12),
-                  _summaryRow('Driver', state.driver.name, isDark),
-                  const Divider(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Total Fare',
-                        style: TextStyle(
-                          color: isDark
-                              ? AppColors.textPrimaryDark
-                              : AppColors.textPrimaryLight,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
+              const SizedBox(height: 24),
+              VybeCard(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    _summaryRow(
+                      'From',
+                      state.trip.pickupLocation.title,
+                      isDark,
+                    ),
+                    const SizedBox(height: 12),
+                    _summaryRow('To', state.trip.dropLocation.title, isDark),
+                    const SizedBox(height: 12),
+                    _summaryRow('Driver', state.driver.name, isDark),
+                    const Divider(height: 24),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Total Fare',
+                          style: TextStyle(
+                            color: isDark
+                                ? AppColors.textPrimaryDark
+                                : AppColors.textPrimaryLight,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
                         ),
-                      ),
-                      Text(
-                        '₹${state.trip.fareAmount.toStringAsFixed(2)}',
-                        style: TextStyle(
-                          color: isDark
-                              ? AppColors.primary
-                              : AppColors.uberBlack,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 22,
+                        Text(
+                          '₹${state.trip.fareAmount.toStringAsFixed(2)}',
+                          style: TextStyle(
+                            color: isDark
+                                ? AppColors.primary
+                                : AppColors.uberBlack,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 22,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      const Icon(
-                        Icons.currency_rupee,
-                        color: AppColors.success,
-                        size: 14,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Cash · Trip ${state.trip.tripId}',
-                        style: const TextStyle(
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        const Icon(
+                          Icons.currency_rupee,
                           color: AppColors.success,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
+                          size: 14,
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                        const SizedBox(width: 4),
+                        Text(
+                          'Cash · Trip ${state.trip.tripId}',
+                          style: const TextStyle(
+                            color: AppColors.success,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 20),
-            VybeButton(
-              text: 'Back to Home',
-              icon: Icons.home_rounded,
-              onPressed: () {
-                context.read<TrackingBloc>().add(TrackingReset());
-                context.go(AppRouter.home);
-              },
-            ),
-          ],
+              const SizedBox(height: 20),
+              VybeButton(
+                text: 'Back to Home',
+                icon: Icons.home_rounded,
+                onPressed: () {
+                  context.read<TrackingBloc>().add(TrackingReset());
+                  context.go(AppRouter.home);
+                },
+              ),
+            ],
+          ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _summaryRow(String label, String value, bool isDark) {
     return Row(

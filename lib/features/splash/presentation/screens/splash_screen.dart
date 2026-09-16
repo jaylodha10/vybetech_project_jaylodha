@@ -109,15 +109,19 @@ class _SplashScreenState extends State<SplashScreen>
         _checkAndNavigate();
       },
       child: Scaffold(
-        backgroundColor:
-            isDark ? AppColors.uberDarkSurface : AppColors.backgroundLight,
+        backgroundColor: isDark
+            ? AppColors.uberDarkSurface
+            : AppColors.backgroundLight,
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // ── Animated Logo with Radiant Glow & Breathing Pulse ──────────
               AnimatedBuilder(
-                animation: Listenable.merge([_entranceController, _pulseController]),
+                animation: Listenable.merge([
+                  _entranceController,
+                  _pulseController,
+                ]),
                 builder: (context, child) {
                   final pulse = _pulseController.value;
                   final breathScale = 1.0 + (pulse * 0.04);
@@ -140,8 +144,9 @@ class _SplashScreenState extends State<SplashScreen>
                               height: 126 + (pulse * 14),
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: AppColors.primary
-                                    .withValues(alpha: (0.15 - pulse * 0.08).clamp(0.0, 1.0)),
+                                color: AppColors.primary.withValues(
+                                  alpha: (0.15 - pulse * 0.08).clamp(0.0, 1.0),
+                                ),
                               ),
                             ),
                             // Logo badge
@@ -157,8 +162,9 @@ class _SplashScreenState extends State<SplashScreen>
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: AppColors.primary
-                                        .withValues(alpha: glowOpacity),
+                                    color: AppColors.primary.withValues(
+                                      alpha: glowOpacity,
+                                    ),
                                     blurRadius: glowBlur,
                                     spreadRadius: glowSpread,
                                   ),
@@ -232,8 +238,9 @@ class _SplashScreenState extends State<SplashScreen>
                       height: 30,
                       child: CircularProgressIndicator(
                         strokeWidth: 2.8,
-                        valueColor:
-                            AlwaysStoppedAnimation<Color>(AppColors.primary),
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          AppColors.primary,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 16),

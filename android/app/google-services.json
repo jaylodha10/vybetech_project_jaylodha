@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1080310330137",
+    "project_id": "vybecabs-jay-2026",
+    "storage_bucket": "vybecabs-jay-2026.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1080310330137:android:b8a100e6496291fb11cb88",
+        "android_client_info": {
+          "package_name": "com.example.vybetech_project_jaylodha"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC1tvAEBdVIyGi_9BouV31rsHb2TIdWOUk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

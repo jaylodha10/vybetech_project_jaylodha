@@ -109,7 +109,10 @@ class _AuthScreenState extends State<AuthScreen>
                         decoration: BoxDecoration(
                           color: AppColors.uberBlack,
                           shape: BoxShape.circle,
-                          border: Border.all(color: AppColors.primary, width: 2),
+                          border: Border.all(
+                            color: AppColors.primary,
+                            width: 2,
+                          ),
                         ),
                         child: SvgPicture.asset(
                           'assets/images/logo.svg',
