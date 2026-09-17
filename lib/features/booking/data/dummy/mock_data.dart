@@ -1,4 +1,4 @@
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:latlong2/latlong.dart';
 import '../../../../shared/models/driver.dart';
 import '../../../history/data/models/ride_history_item.dart';
 import '../../../../shared/models/ride_location.dart';

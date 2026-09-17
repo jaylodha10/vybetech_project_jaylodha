@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:vybetech_project_jaylodha/core/utils/polyline_utils.dart';
 import 'package:vybetech_project_jaylodha/features/auth/data/repositories/auth_repository.dart';
 import 'package:vybetech_project_jaylodha/features/auth/presentation/bloc/auth_bloc.dart';

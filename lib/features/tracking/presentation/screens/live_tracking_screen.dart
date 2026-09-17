@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:latlong2/latlong.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/utils/map_tile_provider.dart';
 import '../../../../shared/models/driver.dart';
 import '../../../../shared/models/trip.dart';
 import '../../../../shared/widgets/driver_info_card.dart';
@@ -19,7 +19,7 @@ class LiveTrackingScreen extends StatefulWidget {
 }
 
 class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
-  GoogleMapController? _mapController;
+  final MapController _mapController = MapController();
   bool _completionShown = false;
 
   @override
@@ -27,11 +27,14 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return BlocConsumer<TrackingBloc, TrackingState>(
-      listenWhen: (previous, current) => current is TrackingCompleted,
       listener: (context, state) {
         if (state is TrackingCompleted && !_completionShown) {
           _completionShown = true;
           _showTripCompletedSheet(context, state, isDark);
+        }
+        final carPos = _getCarPosition(state);
+        if (carPos != null) {
+          _mapController.move(carPos, 15.5);
         }
       },
       builder: (context, state) {
@@ -52,11 +55,6 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
         final isDriverArrived = state is TrackingDriverArrived;
         final isCompleted = state is TrackingCompleted;
 
-        // Animate camera to car position
-        if (carPos != null && _mapController != null) {
-          _mapController!.animateCamera(CameraUpdate.newLatLng(carPos));
-        }
-
         return Scaffold(
           backgroundColor: isDark
               ? AppColors.uberDarkSurface
@@ -65,24 +63,33 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
             children: [
               // ── Map ──────────────────────────────────────────────────────
               if (trip != null)
-                GoogleMap(
-                  initialCameraPosition: CameraPosition(
-                    target: trip.pickupLocation.coordinates,
-                    zoom: 15.0,
+                FlutterMap(
+                  mapController: _mapController,
+                  options: MapOptions(
+                    initialCenter: trip.pickupLocation.coordinates,
+                    initialZoom: 15.0,
                   ),
-                  onMapCreated: (c) => _mapController = c,
-                  markers: _buildMarkers(state, trip, carPos, carBearing),
-                  polylines: _buildPolylines(state, trip),
-                  zoomControlsEnabled: false,
-                  myLocationButtonEnabled: false,
-                  tileOverlays: {
-                    TileOverlay(
-                      tileOverlayId: TileOverlayId(
-                        isDark ? 'vybe_dark_tiles' : 'vybe_light_tiles',
-                      ),
-                      tileProvider: VybeMapTileProvider(isDark: isDark),
+                  children: [
+                    TileLayer(
+                      urlTemplate: isDark
+                          ? 'https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'
+                          : 'https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
+                      userAgentPackageName:
+                          'com.example.vybetech_project_jaylodha',
                     ),
-                  },
+                    if (_buildPolylines(state, trip).isNotEmpty)
+                      PolylineLayer(
+                        polylines: _buildPolylines(state, trip),
+                      ),
+                    MarkerLayer(
+                      markers: _buildMarkers(
+                        state,
+                        trip,
+                        carPos,
+                        carBearing,
+                      ),
+                    ),
+                  ],
                 ),
 
               // ── Status pill ───────────────────────────────────────────────
@@ -326,35 +333,67 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
     );
   }
 
-  Set<Marker> _buildMarkers(
+  List<Marker> _buildMarkers(
     TrackingState state,
     Trip? trip,
     LatLng? carPos,
     double carBearing,
   ) {
-    final markers = <Marker>{};
+    final markers = <Marker>[];
 
     if (trip != null) {
       markers.add(
         Marker(
-          markerId: const MarkerId('pickup'),
-          position: trip.pickupLocation.coordinates,
-          icon: BitmapDescriptor.defaultMarkerWithHue(
-            BitmapDescriptor.hueYellow,
+          point: trip.pickupLocation.coordinates,
+          width: 44,
+          height: 44,
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppColors.primary,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 2.5),
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black38,
+                  blurRadius: 8,
+                  offset: Offset(0, 3),
+                ),
+              ],
+            ),
+            child: const Icon(
+              Icons.my_location_rounded,
+              color: AppColors.uberBlack,
+              size: 22,
+            ),
           ),
-          infoWindow: const InfoWindow(title: 'Pickup Location'),
         ),
       );
 
       if (state is TrackingInProgress || state is TrackingCompleted) {
         markers.add(
           Marker(
-            markerId: const MarkerId('drop'),
-            position: trip.dropLocation.coordinates,
-            icon: BitmapDescriptor.defaultMarkerWithHue(
-              BitmapDescriptor.hueRed,
+            point: trip.dropLocation.coordinates,
+            width: 44,
+            height: 44,
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppColors.error,
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 2.5),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black38,
+                    blurRadius: 8,
+                    offset: Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.location_on_rounded,
+                color: Colors.white,
+                size: 24,
+              ),
             ),
-            infoWindow: const InfoWindow(title: 'Drop Destination'),
           ),
         );
       }
@@ -363,41 +402,55 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
     if (carPos != null) {
       markers.add(
         Marker(
-          markerId: const MarkerId('car'),
-          position: carPos,
-          rotation: carBearing,
-          flat: true,
-          anchor: const Offset(0.5, 0.5),
-          icon: BitmapDescriptor.defaultMarkerWithHue(
-            BitmapDescriptor.hueAzure,
+          point: carPos,
+          width: 50,
+          height: 50,
+          child: Transform.rotate(
+            angle: carBearing * (pi / 180),
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppColors.uberBlack,
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.primary, width: 3),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black54,
+                    blurRadius: 10,
+                    offset: Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.navigation_rounded,
+                color: AppColors.primary,
+                size: 28,
+              ),
+            ),
           ),
-          infoWindow: const InfoWindow(title: 'Driver Location'),
         ),
       );
     }
     return markers;
   }
 
-  Set<Polyline> _buildPolylines(TrackingState state, Trip? trip) {
-    if (trip == null) return {};
-    final polylines = <Polyline>{};
+  List<Polyline> _buildPolylines(TrackingState state, Trip? trip) {
+    if (trip == null) return [];
+    final polylines = <Polyline>[];
 
     if (state is TrackingDriverOnTheWay) {
       polylines.add(
         Polyline(
-          polylineId: const PolylineId('to_pickup'),
           points: trip.pathDriverToPickup,
           color: AppColors.primary,
-          width: 4,
+          strokeWidth: 4.5,
         ),
       );
     } else if (state is TrackingInProgress) {
       polylines.add(
         Polyline(
-          polylineId: const PolylineId('to_drop'),
           points: trip.pathPickupToDrop,
           color: AppColors.primary,
-          width: 4,
+          strokeWidth: 4.5,
         ),
       );
     }

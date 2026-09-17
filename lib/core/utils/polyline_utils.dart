@@ -1,5 +1,5 @@
 import 'dart:math';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:latlong2/latlong.dart';
 
 class PolylineUtils {
   /// Interpolate between two LatLng points

@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/utils/map_tile_provider.dart';
 import '../../../../main.dart' show themeModeNotifier;
 import '../../../../shared/models/ride_location.dart';
 import '../../../../shared/widgets/vybe_widgets.dart';
@@ -23,10 +22,9 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  GoogleMapController? _mapController;
+  final MapController _mapController = MapController();
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
-  bool _myLocationEnabled = false;
 
   bool get _isDark => themeModeNotifier.value == ThemeMode.dark;
 
@@ -38,10 +36,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _requestLocationPermission() async {
     try {
-      final status = await Permission.location.request();
-      if (mounted && status.isGranted) {
-        setState(() => _myLocationEnabled = true);
-      }
+      await Permission.location.request();
     } catch (_) {}
   }
 
@@ -96,26 +91,29 @@ class _HomeScreenState extends State<HomeScreen> {
             return Scaffold(
               body: Stack(
                 children: [
-                  // ── Google Map ──────────────────────────────────────────
-                  GoogleMap(
-                    initialCameraPosition: CameraPosition(
-                      target: pickup.coordinates,
-                      zoom: AppConstants.defaultZoom,
+                  // ── Map ──────────────────────────────────────────────────
+                  FlutterMap(
+                    mapController: _mapController,
+                    options: MapOptions(
+                      initialCenter: pickup.coordinates,
+                      initialZoom: AppConstants.defaultZoom,
                     ),
-                    onMapCreated: (c) => _mapController = c,
-                    markers: _buildMarkers(state),
-                    polylines: _buildPolylines(state),
-                    myLocationEnabled: _myLocationEnabled,
-                    myLocationButtonEnabled: false,
-                    zoomControlsEnabled: false,
-                    tileOverlays: {
-                      TileOverlay(
-                        tileOverlayId: TileOverlayId(
-                          isDark ? 'vybe_dark_tiles' : 'vybe_light_tiles',
-                        ),
-                        tileProvider: VybeMapTileProvider(isDark: isDark),
+                    children: [
+                      TileLayer(
+                        urlTemplate: isDark
+                            ? 'https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'
+                            : 'https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
+                        userAgentPackageName:
+                            'com.example.vybetech_project_jaylodha',
                       ),
-                    },
+                      if (state.selectedDrop != null)
+                        PolylineLayer(
+                          polylines: _buildPolylines(state),
+                        ),
+                      MarkerLayer(
+                        markers: _buildMarkers(state),
+                      ),
+                    ],
                   ),
 
                   // ── Top Overlay ──────────────────────────────────────────
@@ -244,9 +242,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ? AppColors.primary
                           : AppColors.uberBlack,
                       onPressed: () {
-                        _mapController?.animateCamera(
-                          CameraUpdate.newLatLngZoom(pickup.coordinates, 16.0),
-                        );
+                        _mapController.move(pickup.coordinates, 16.0);
                       },
                       child: const Icon(Icons.my_location),
                     ),
@@ -344,39 +340,74 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // ─────────────────────────────────────────────────────────────────────────
 
-  Set<Marker> _buildMarkers(BookingInitial state) {
-    final markers = <Marker>{
+  List<Marker> _buildMarkers(BookingInitial state) {
+    final markers = <Marker>[
+      // Pickup marker
       Marker(
-        markerId: const MarkerId('pickup'),
-        position: state.pickup.coordinates,
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueYellow),
-        infoWindow: InfoWindow(title: state.pickup.title),
+        point: state.pickup.coordinates,
+        width: 44,
+        height: 44,
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppColors.primary,
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white, width: 2.5),
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black38,
+                blurRadius: 8,
+                offset: Offset(0, 3),
+              ),
+            ],
+          ),
+          child: const Icon(
+            Icons.my_location_rounded,
+            color: AppColors.uberBlack,
+            size: 22,
+          ),
+        ),
       ),
-    };
+    ];
     if (state.selectedDrop != null) {
       markers.add(
         Marker(
-          markerId: const MarkerId('drop'),
-          position: state.selectedDrop!.coordinates,
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
-          infoWindow: InfoWindow(title: state.selectedDrop!.title),
+          point: state.selectedDrop!.coordinates,
+          width: 44,
+          height: 44,
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppColors.error,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 2.5),
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black38,
+                  blurRadius: 8,
+                  offset: Offset(0, 3),
+                ),
+              ],
+            ),
+            child: const Icon(
+              Icons.location_on_rounded,
+              color: Colors.white,
+              size: 24,
+            ),
+          ),
         ),
       );
     }
     return markers;
   }
 
-  Set<Polyline> _buildPolylines(BookingInitial state) {
-    if (state.selectedDrop == null) return {};
-    return {
+  List<Polyline> _buildPolylines(BookingInitial state) {
+    if (state.selectedDrop == null) return [];
+    return [
       Polyline(
-        polylineId: const PolylineId('route_preview'),
         points: [state.pickup.coordinates, state.selectedDrop!.coordinates],
         color: AppColors.primary,
-        width: 4,
-        patterns: [PatternItem.dash(20), PatternItem.gap(10)],
+        strokeWidth: 4.5,
       ),
-    };
+    ];
   }
 
   Widget _buildDropList(
@@ -484,75 +515,67 @@ class _HomeScreenState extends State<HomeScreen> {
     return Material(
       color: Colors.transparent,
       child: ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      leading: Container(
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: isDark
-              ? AppColors.cardDarkElevated
-              : AppColors.cardLightElevated,
-          borderRadius: BorderRadius.circular(12),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        leading: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: isDark
+                ? AppColors.cardDarkElevated
+                : AppColors.cardLightElevated,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: const Icon(
+            Icons.location_on_rounded,
+            color: AppColors.primary,
+            size: 20,
+          ),
         ),
-        child: const Icon(
-          Icons.location_on_rounded,
-          color: AppColors.primary,
-          size: 20,
+        title: Text(
+          loc.title,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: isDark
+                ? AppColors.textPrimaryDark
+                : AppColors.textPrimaryLight,
+            fontWeight: FontWeight.bold,
+            fontSize: 14,
+          ),
         ),
-      ),
-      title: Text(
-        loc.title,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(
-          color: isDark
-              ? AppColors.textPrimaryDark
-              : AppColors.textPrimaryLight,
-          fontWeight: FontWeight.bold,
-          fontSize: 14,
+        subtitle: Text(
+          '${loc.distanceKm} km · ${loc.etaMinutes} mins',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: isDark
+                ? AppColors.textSecondaryDark
+                : AppColors.textSecondaryLight,
+            fontSize: 12,
+          ),
         ),
-      ),
-      subtitle: Text(
-        '${loc.distanceKm} km · ${loc.etaMinutes} mins',
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(
-          color: isDark
-              ? AppColors.textSecondaryDark
-              : AppColors.textSecondaryLight,
-          fontSize: 12,
-        ),
-      ),
-      trailing: const Icon(Icons.chevron_right, color: AppColors.textMutedDark),
-      onTap: () {
-        context.read<BookingBloc>().add(BookingDropLocationSelected(loc));
-        // Zoom to show both pickup and drop
-        _mapController?.animateCamera(
-          CameraUpdate.newLatLngBounds(
-            LatLngBounds(
-              southwest: LatLng(
-                loc.coordinates.latitude < state.pickup.coordinates.latitude
-                    ? loc.coordinates.latitude
-                    : state.pickup.coordinates.latitude,
-                loc.coordinates.longitude < state.pickup.coordinates.longitude
-                    ? loc.coordinates.longitude
-                    : state.pickup.coordinates.longitude,
-              ),
-              northeast: LatLng(
-                loc.coordinates.latitude > state.pickup.coordinates.latitude
-                    ? loc.coordinates.latitude
-                    : state.pickup.coordinates.latitude,
-                loc.coordinates.longitude > state.pickup.coordinates.longitude
-                    ? loc.coordinates.longitude
-                    : state.pickup.coordinates.longitude,
+        trailing: const Icon(Icons.chevron_right, color: AppColors.textMutedDark),
+        onTap: () {
+          context.read<BookingBloc>().add(BookingDropLocationSelected(loc));
+          // Zoom to show both pickup and drop
+          final bounds = LatLngBounds.fromPoints([
+            state.pickup.coordinates,
+            loc.coordinates,
+          ]);
+          _mapController.fitCamera(
+            CameraFit.bounds(
+              bounds: bounds,
+              padding: const EdgeInsets.only(
+                top: 80,
+                bottom: 320,
+                left: 40,
+                right: 40,
               ),
             ),
-            80.0,
-          ),
-        );
-      },
-    ),
-  );
-}
+          );
+        },
+      ),
+    );
+  }
 
   Widget _buildSelectedDropSection(
     BuildContext context,
