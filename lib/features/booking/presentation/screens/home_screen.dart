@@ -481,7 +481,9 @@ class _HomeScreenState extends State<HomeScreen> {
     RideLocation loc,
     bool isDark,
   ) {
-    return ListTile(
+    return Material(
+      color: Colors.transparent,
+      child: ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       leading: Container(
         padding: const EdgeInsets.all(10),
@@ -548,8 +550,9 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         );
       },
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildSelectedDropSection(
     BuildContext context,
