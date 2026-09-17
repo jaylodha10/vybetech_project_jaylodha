@@ -6,6 +6,7 @@ import 'package:permission_handler/permission_handler.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/map_tile_provider.dart';
 import '../../../../main.dart' show themeModeNotifier;
 import '../../../../shared/models/ride_location.dart';
 import '../../../../shared/widgets/vybe_widgets.dart';
@@ -107,6 +108,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     myLocationEnabled: _myLocationEnabled,
                     myLocationButtonEnabled: false,
                     zoomControlsEnabled: false,
+                    tileOverlays: {
+                      TileOverlay(
+                        tileOverlayId: TileOverlayId(
+                          isDark ? 'vybe_dark_tiles' : 'vybe_light_tiles',
+                        ),
+                        tileProvider: VybeMapTileProvider(isDark: isDark),
+                      ),
+                    },
                   ),
 
                   // ── Top Overlay ──────────────────────────────────────────

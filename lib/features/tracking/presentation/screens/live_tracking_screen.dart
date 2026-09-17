@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/map_tile_provider.dart';
 import '../../../../shared/models/driver.dart';
 import '../../../../shared/models/trip.dart';
 import '../../../../shared/widgets/driver_info_card.dart';
@@ -74,6 +75,14 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
                   polylines: _buildPolylines(state, trip),
                   zoomControlsEnabled: false,
                   myLocationButtonEnabled: false,
+                  tileOverlays: {
+                    TileOverlay(
+                      tileOverlayId: TileOverlayId(
+                        isDark ? 'vybe_dark_tiles' : 'vybe_light_tiles',
+                      ),
+                      tileProvider: VybeMapTileProvider(isDark: isDark),
+                    ),
+                  },
                 ),
 
               // ── Status pill ───────────────────────────────────────────────
