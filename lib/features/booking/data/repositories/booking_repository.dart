@@ -21,12 +21,32 @@ class BookingRepository {
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
       }
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        return defaultPickup;
+      }
+
       if (permission == LocationPermission.whileInUse ||
           permission == LocationPermission.always) {
+        // 1. Instant check: last known position from Android location cache
+        final lastKnown = await Geolocator.getLastKnownPosition();
+        if (lastKnown != null) {
+          return RideLocation(
+            id: 'current_gps',
+            title: 'Current Location',
+            subtitle:
+                '${lastKnown.latitude.toStringAsFixed(4)}, ${lastKnown.longitude.toStringAsFixed(4)}',
+            coordinates: LatLng(lastKnown.latitude, lastKnown.longitude),
+            distanceKm: 0.0,
+            etaMinutes: 0,
+          );
+        }
+
+        // 2. Active fix with strict 3-second limit
         final position = await Geolocator.getCurrentPosition(
           locationSettings: const LocationSettings(
-            accuracy: LocationAccuracy.high,
-            timeLimit: Duration(seconds: 5),
+            accuracy: LocationAccuracy.medium,
+            timeLimit: Duration(seconds: 3),
           ),
         );
         return RideLocation(

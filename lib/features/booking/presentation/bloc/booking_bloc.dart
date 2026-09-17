@@ -11,6 +11,14 @@ class BookingBloc extends Bloc<BookingEvent, BookingState> {
   final BookingRepository bookingRepository;
 
   BookingBloc({required this.bookingRepository}) : super(BookingLoading()) {
+  BookingBloc({required this.bookingRepository})
+      : super(
+          BookingInitial(
+            pickup: bookingRepository.defaultPickup,
+            dropLocations: bookingRepository.getDropLocations(),
+            vehicleCategories: bookingRepository.getVehicleCategories(),
+          ),
+        ) {
     on<BookingInitialized>(_onInitialized);
     on<BookingDropLocationSelected>(_onDropSelected);
     on<BookingDropLocationCleared>(_onDropCleared);
@@ -33,6 +41,15 @@ class BookingBloc extends Bloc<BookingEvent, BookingState> {
         vehicleCategories: vehicles,
       ),
     );
+    try {
+      final gpsPickup = await bookingRepository.fetchCurrentLocation().timeout(
+        const Duration(seconds: 3),
+      );
+      if (!isClosed && state is BookingInitial) {
+        final current = state as BookingInitial;
+        emit(current.copyWith(pickup: gpsPickup));
+      }
+    } catch (_) {}
   }
 
   void _onDropSelected(

@@ -107,12 +107,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             'com.example.vybetech_project_jaylodha',
                       ),
                       if (state.selectedDrop != null)
-                        PolylineLayer(
-                          polylines: _buildPolylines(state),
-                        ),
-                      MarkerLayer(
-                        markers: _buildMarkers(state),
-                      ),
+                        PolylineLayer(polylines: _buildPolylines(state)),
+                      MarkerLayer(markers: _buildMarkers(state)),
                     ],
                   ),
 
@@ -553,7 +549,10 @@ class _HomeScreenState extends State<HomeScreen> {
             fontSize: 12,
           ),
         ),
-        trailing: const Icon(Icons.chevron_right, color: AppColors.textMutedDark),
+        trailing: const Icon(
+          Icons.chevron_right,
+          color: AppColors.textMutedDark,
+        ),
         onTap: () {
           context.read<BookingBloc>().add(BookingDropLocationSelected(loc));
           // Zoom to show both pickup and drop

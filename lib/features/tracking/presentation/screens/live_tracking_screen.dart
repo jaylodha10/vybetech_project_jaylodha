@@ -78,16 +78,9 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
                           'com.example.vybetech_project_jaylodha',
                     ),
                     if (_buildPolylines(state, trip).isNotEmpty)
-                      PolylineLayer(
-                        polylines: _buildPolylines(state, trip),
-                      ),
+                      PolylineLayer(polylines: _buildPolylines(state, trip)),
                     MarkerLayer(
-                      markers: _buildMarkers(
-                        state,
-                        trip,
-                        carPos,
-                        carBearing,
-                      ),
+                      markers: _buildMarkers(state, trip, carPos, carBearing),
                     ),
                   ],
                 ),
