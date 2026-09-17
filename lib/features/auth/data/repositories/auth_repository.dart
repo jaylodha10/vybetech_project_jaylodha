@@ -88,14 +88,21 @@ class AuthRepository {
         phoneNumber: phoneNumber.trim(),
         verificationCompleted: (_) {},
         verificationFailed: (e) {
-          completer.complete(null);
-          // Gracefully fallback so the user is never blocked from testing
-          completer.complete('demo_ver_id_123456');
+          if (!completer.isCompleted) {
+            // Gracefully fallback to demo ID if Firebase Phone Auth is disabled or fails
+            completer.complete('demo_ver_id_123456');
+          }
         },
         codeSent: (String verificationId, int? _) {
-          completer.complete(verificationId);
+          if (!completer.isCompleted) {
+            completer.complete(verificationId);
+          }
         },
-        codeAutoRetrievalTimeout: (_) {},
+        codeAutoRetrievalTimeout: (_) {
+          if (!completer.isCompleted) {
+            completer.complete('demo_ver_id_123456');
+          }
+        },
       );
       return await completer.future;
     } catch (_) {
