@@ -10,7 +10,6 @@ part 'booking_state.dart';
 class BookingBloc extends Bloc<BookingEvent, BookingState> {
   final BookingRepository bookingRepository;
 
-  BookingBloc({required this.bookingRepository}) : super(BookingLoading()) {
   BookingBloc({required this.bookingRepository})
       : super(
           BookingInitial(
@@ -30,17 +29,6 @@ class BookingBloc extends Bloc<BookingEvent, BookingState> {
     BookingInitialized event,
     Emitter<BookingState> emit,
   ) async {
-    emit(BookingLoading());
-    final pickup = await bookingRepository.fetchCurrentLocation();
-    final drops = bookingRepository.getDropLocations();
-    final vehicles = bookingRepository.getVehicleCategories();
-    emit(
-      BookingInitial(
-        pickup: pickup,
-        dropLocations: drops,
-        vehicleCategories: vehicles,
-      ),
-    );
     try {
       final gpsPickup = await bookingRepository.fetchCurrentLocation().timeout(
         const Duration(seconds: 3),
