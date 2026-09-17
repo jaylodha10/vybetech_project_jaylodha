@@ -11,7 +11,7 @@ import 'features/history/data/repositories/history_repository.dart';
 import 'firebase_options.dart';
 
 /// Global notifier so any screen can toggle the app theme
-final themeModeNotifier = ValueNotifier<ThemeMode>(ThemeMode.dark);
+final themeModeNotifier = ValueNotifier<ThemeMode>(ThemeMode.light);
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
