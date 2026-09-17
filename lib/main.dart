@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/data/repositories/auth_repository.dart';
@@ -31,24 +32,46 @@ void main() async {
   runApp(const VybeCabsApp());
 }
 
-class VybeCabsApp extends StatelessWidget {
+class VybeCabsApp extends StatefulWidget {
   const VybeCabsApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final authRepository = AuthRepository();
-    final bookingRepository = BookingRepository();
-    final historyRepository = HistoryRepository();
-    final authBloc = AuthBloc(authRepository: authRepository);
+  State<VybeCabsApp> createState() => _VybeCabsAppState();
+}
 
+class _VybeCabsAppState extends State<VybeCabsApp> {
+  late final AuthRepository _authRepository;
+  late final BookingRepository _bookingRepository;
+  late final HistoryRepository _historyRepository;
+  late final AuthBloc _authBloc;
+  late final GoRouter _router;
+
+  @override
+  void initState() {
+    super.initState();
+    _authRepository = AuthRepository();
+    _bookingRepository = BookingRepository();
+    _historyRepository = HistoryRepository();
+    _authBloc = AuthBloc(authRepository: _authRepository);
+    _router = AppRouter.createRouter(_authBloc);
+  }
+
+  @override
+  void dispose() {
+    _authBloc.close();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return MultiRepositoryProvider(
       providers: [
-        RepositoryProvider<AuthRepository>.value(value: authRepository),
-        RepositoryProvider<BookingRepository>.value(value: bookingRepository),
-        RepositoryProvider<HistoryRepository>.value(value: historyRepository),
+        RepositoryProvider<AuthRepository>.value(value: _authRepository),
+        RepositoryProvider<BookingRepository>.value(value: _bookingRepository),
+        RepositoryProvider<HistoryRepository>.value(value: _historyRepository),
       ],
       child: BlocProvider<AuthBloc>.value(
-        value: authBloc,
+        value: _authBloc,
         child: ValueListenableBuilder<ThemeMode>(
           valueListenable: themeModeNotifier,
           builder: (context, themeMode, _) {
@@ -58,7 +81,7 @@ class VybeCabsApp extends StatelessWidget {
               theme: AppTheme.light,
               darkTheme: AppTheme.dark,
               themeMode: themeMode,
-              routerConfig: AppRouter.createRouter(authBloc),
+              routerConfig: _router,
             );
           },
         ),
