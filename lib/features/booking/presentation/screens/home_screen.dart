@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -24,8 +25,24 @@ class _HomeScreenState extends State<HomeScreen> {
   GoogleMapController? _mapController;
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  bool _myLocationEnabled = false;
 
   bool get _isDark => themeModeNotifier.value == ThemeMode.dark;
+
+  @override
+  void initState() {
+    super.initState();
+    _requestLocationPermission();
+  }
+
+  Future<void> _requestLocationPermission() async {
+    try {
+      final status = await Permission.location.request();
+      if (mounted && status.isGranted) {
+        setState(() => _myLocationEnabled = true);
+      }
+    } catch (_) {}
+  }
 
   @override
   void dispose() {
@@ -87,7 +104,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     onMapCreated: (c) => _mapController = c,
                     markers: _buildMarkers(state),
                     polylines: _buildPolylines(state),
-                    myLocationEnabled: true,
+                    myLocationEnabled: _myLocationEnabled,
                     myLocationButtonEnabled: false,
                     zoomControlsEnabled: false,
                   ),
