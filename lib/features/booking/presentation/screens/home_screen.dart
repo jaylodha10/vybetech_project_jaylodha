@@ -50,7 +50,11 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return BlocConsumer<BookingBloc, BookingState>(
       listener: (context, state) {
-        if (state is BookingRideCreated) {
+        if (state is BookingInitial && state.selectedDrop == null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _mapController.move(state.pickup.coordinates, 15.5);
+          });
+        } else if (state is BookingRideCreated) {
           final trackingBloc = TrackingBloc(
             bookingRepository: context.read<BookingRepository>(),
           )..add(TrackingStarted(state.trip));
@@ -69,7 +73,7 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       },
       builder: (context, state) {
-        if (state is BookingLoading) {
+        if (state is! BookingInitial) {
           return Scaffold(
             backgroundColor: _isDark
                 ? AppColors.uberDarkSurface
@@ -80,7 +84,6 @@ class _HomeScreenState extends State<HomeScreen> {
           );
         }
 
-        if (state is! BookingInitial) return const SizedBox();
         final pickup = state.pickup;
 
         return ValueListenableBuilder<ThemeMode>(
@@ -100,11 +103,21 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     children: [
                       TileLayer(
-                        urlTemplate: isDark
-                            ? 'https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'
-                            : 'https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
+                        urlTemplate:
+                            'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                         userAgentPackageName:
                             'com.example.vybetech_project_jaylodha',
+                        tileBuilder: isDark
+                            ? (context, tileWidget, tile) => ColorFiltered(
+                                  colorFilter: const ColorFilter.matrix([
+                                    -0.75, 0, 0, 0, 255,
+                                    0, -0.75, 0, 0, 255,
+                                    0, 0, -0.75, 0, 255,
+                                    0, 0, 0, 1, 0,
+                                  ]),
+                                  child: tileWidget,
+                                )
+                            : null,
                       ),
                       if (state.selectedDrop != null)
                         PolylineLayer(polylines: _buildPolylines(state)),
@@ -237,8 +250,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       foregroundColor: isDark
                           ? AppColors.primary
                           : AppColors.uberBlack,
-                      onPressed: () {
-                        _mapController.move(pickup.coordinates, 16.0);
+                      onPressed: () async {
+                        final repo = context.read<BookingRepository>();
+                        final gps = await repo.fetchCurrentLocation();
+                        if (context.mounted) {
+                          context.read<BookingBloc>().add(BookingInitialized());
+                          _mapController.move(gps.coordinates, 16.0);
+                        }
                       },
                       child: const Icon(Icons.my_location),
                     ),

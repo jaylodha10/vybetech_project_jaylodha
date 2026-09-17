@@ -71,11 +71,21 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
                   ),
                   children: [
                     TileLayer(
-                      urlTemplate: isDark
-                          ? 'https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'
-                          : 'https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
+                      urlTemplate:
+                          'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                       userAgentPackageName:
                           'com.example.vybetech_project_jaylodha',
+                      tileBuilder: isDark
+                          ? (context, tileWidget, tile) => ColorFiltered(
+                                colorFilter: const ColorFilter.matrix([
+                                  -0.75, 0, 0, 0, 255,
+                                  0, -0.75, 0, 0, 255,
+                                  0, 0, -0.75, 0, 255,
+                                  0, 0, 0, 1, 0,
+                                ]),
+                                child: tileWidget,
+                              )
+                          : null,
                     ),
                     if (_buildPolylines(state, trip).isNotEmpty)
                       PolylineLayer(polylines: _buildPolylines(state, trip)),
