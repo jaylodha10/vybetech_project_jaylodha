@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:go_router/go_router.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:latlong2/latlong.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -28,16 +28,107 @@ class _HomeScreenState extends State<HomeScreen> {
 
   bool get _isDark => themeModeNotifier.value == ThemeMode.dark;
 
+  bool _isLocating = false;
+
   @override
   void initState() {
     super.initState();
-    _requestLocationPermission();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<BookingBloc>().add(BookingInitialized());
+    });
   }
 
-  Future<void> _requestLocationPermission() async {
+  Future<void> _locateMe() async {
+    if (_isLocating) return;
+    setState(() => _isLocating = true);
+
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Row(
+          children: [
+            SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Colors.white,
+              ),
+            ),
+            SizedBox(width: 12),
+            Text('Locating you via GPS...'),
+          ],
+        ),
+        duration: Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+
     try {
-      await Permission.location.request();
-    } catch (_) {}
+      final repo = context.read<BookingRepository>();
+      final gps = await repo.fetchCurrentLocation();
+
+      if (!mounted) return;
+      context.read<BookingBloc>().add(BookingInitialized());
+      _centerOnLocation(gps.coordinates, zoom: 16.0);
+
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('📍 Location updated: ${gps.subtitle}'),
+          backgroundColor: AppColors.success,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text(
+            'Could not obtain GPS fix. Using default location.',
+          ),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isLocating = false);
+    }
+  }
+
+  void _centerOnLocation(
+    LatLng target, {
+    double zoom = 15.5,
+    bool hasDrop = false,
+  }) {
+    final latOffset = hasDrop ? 0.002 : 0.0045;
+    final viewCenter = LatLng(target.latitude - latOffset, target.longitude);
+    _mapController.move(viewCenter, zoom);
+  }
+
+  void _fitRoute(LatLng p1, LatLng p2) {
+    final south =
+        (p1.latitude < p2.latitude ? p1.latitude : p2.latitude) - 0.006;
+    final north =
+        (p1.latitude > p2.latitude ? p1.latitude : p2.latitude) + 0.003;
+    final west =
+        (p1.longitude < p2.longitude ? p1.longitude : p2.longitude) - 0.003;
+    final east =
+        (p1.longitude > p2.longitude ? p1.longitude : p2.longitude) + 0.003;
+    _mapController.fitCamera(
+      CameraFit.bounds(
+        bounds: LatLngBounds(LatLng(south, west), LatLng(north, east)),
+        padding: const EdgeInsets.fromLTRB(30, 80, 30, 240),
+      ),
+    );
   }
 
   @override
@@ -52,7 +143,14 @@ class _HomeScreenState extends State<HomeScreen> {
       listener: (context, state) {
         if (state is BookingInitial && state.selectedDrop == null) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            _mapController.move(state.pickup.coordinates, 15.5);
+            _centerOnLocation(state.pickup.coordinates, zoom: 15.5);
+          });
+        } else if (state is BookingInitial && state.selectedDrop != null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _fitRoute(
+              state.pickup.coordinates,
+              state.selectedDrop!.coordinates,
+            );
           });
         } else if (state is BookingRideCreated) {
           final trackingBloc = TrackingBloc(
@@ -98,7 +196,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   FlutterMap(
                     mapController: _mapController,
                     options: MapOptions(
-                      initialCenter: pickup.coordinates,
+                      initialCenter: LatLng(
+                        pickup.coordinates.latitude - 0.0045,
+                        pickup.coordinates.longitude,
+                      ),
                       initialZoom: AppConstants.defaultZoom,
                     ),
                     children: [
@@ -109,14 +210,30 @@ class _HomeScreenState extends State<HomeScreen> {
                             'com.example.vybetech_project_jaylodha',
                         tileBuilder: isDark
                             ? (context, tileWidget, tile) => ColorFiltered(
-                                  colorFilter: const ColorFilter.matrix([
-                                    -0.75, 0, 0, 0, 255,
-                                    0, -0.75, 0, 0, 255,
-                                    0, 0, -0.75, 0, 255,
-                                    0, 0, 0, 1, 0,
-                                  ]),
-                                  child: tileWidget,
-                                )
+                                colorFilter: const ColorFilter.matrix([
+                                  -0.75,
+                                  0,
+                                  0,
+                                  0,
+                                  255,
+                                  0,
+                                  -0.75,
+                                  0,
+                                  0,
+                                  255,
+                                  0,
+                                  0,
+                                  -0.75,
+                                  0,
+                                  255,
+                                  0,
+                                  0,
+                                  0,
+                                  1,
+                                  0,
+                                ]),
+                                child: tileWidget,
+                              )
                             : null,
                       ),
                       if (state.selectedDrop != null)
@@ -238,27 +355,63 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
 
-                  // ── Re-center FAB ────────────────────────────────────────
+                  // ── Locate Me FAB ────────────────────────────────────────
                   Positioned(
                     right: 16,
-                    bottom: state.selectedDrop != null ? 360 : 310,
-                    child: FloatingActionButton.small(
-                      heroTag: 'recenter',
-                      backgroundColor: isDark
-                          ? AppColors.cardDark
-                          : AppColors.cardLight,
-                      foregroundColor: isDark
-                          ? AppColors.primary
-                          : AppColors.uberBlack,
-                      onPressed: () async {
-                        final repo = context.read<BookingRepository>();
-                        final gps = await repo.fetchCurrentLocation();
-                        if (context.mounted) {
-                          context.read<BookingBloc>().add(BookingInitialized());
-                          _mapController.move(gps.coordinates, 16.0);
-                        }
-                      },
-                      child: const Icon(Icons.my_location),
+                    bottom:
+                        MediaQuery.of(context).size.height *
+                        (state.selectedDrop != null ? 0.46 : 0.40),
+                    child: Material(
+                      elevation: 6,
+                      borderRadius: BorderRadius.circular(24),
+                      color: isDark ? AppColors.cardDark : Colors.white,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(24),
+                        onTap: _locateMe,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 10,
+                          ),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(24),
+                            border: Border.all(
+                              color: AppColors.primary.withValues(alpha: 0.6),
+                              width: 1.5,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _isLocating
+                                  ? const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: AppColors.primary,
+                                      ),
+                                    )
+                                  : const Icon(
+                                      Icons.my_location_rounded,
+                                      color: AppColors.primary,
+                                      size: 18,
+                                    ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Locate Me',
+                                style: TextStyle(
+                                  color: isDark
+                                      ? AppColors.textPrimaryDark
+                                      : AppColors.uberBlack,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
                   ),
 
@@ -267,7 +420,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     alignment: Alignment.bottomCenter,
                     child: Container(
                       constraints: BoxConstraints(
-                        maxHeight: MediaQuery.of(context).size.height * 0.58,
+                        maxHeight:
+                            MediaQuery.of(context).size.height *
+                            (state.selectedDrop != null ? 0.44 : 0.38),
                       ),
                       padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
                       decoration: BoxDecoration(
@@ -304,29 +459,93 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                 ),
                               ),
-                              // Pickup row
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.my_location,
-                                    color: AppColors.primary,
-                                    size: 20,
+                              // Pickup row (Interactive with Locate Me)
+                              InkWell(
+                                onTap: _locateMe,
+                                borderRadius: BorderRadius.circular(12),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 8,
                                   ),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: Text(
-                                      pickup.title,
-                                      style: TextStyle(
-                                        color: isDark
-                                            ? AppColors.textPrimaryDark
-                                            : AppColors.textPrimaryLight,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 14,
+                                  decoration: BoxDecoration(
+                                    color: isDark
+                                        ? AppColors.uberDarkSurface
+                                        : AppColors.backgroundLight,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(6),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.primary.withValues(
+                                            alpha: 0.2,
+                                          ),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(
+                                          Icons.my_location_rounded,
+                                          color: AppColors.primary,
+                                          size: 16,
+                                        ),
                                       ),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              pickup.title,
+                                              style: TextStyle(
+                                                color: isDark
+                                                    ? AppColors.textPrimaryDark
+                                                    : AppColors
+                                                          .textPrimaryLight,
+                                                fontWeight: FontWeight.w700,
+                                                fontSize: 14,
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            Text(
+                                              pickup.subtitle,
+                                              style: TextStyle(
+                                                color: isDark
+                                                    ? AppColors
+                                                          .textSecondaryDark
+                                                    : AppColors
+                                                          .textSecondaryLight,
+                                                fontSize: 12,
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 4,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.primary,
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                        ),
+                                        child: const Text(
+                                          'Locate Me',
+                                          style: TextStyle(
+                                            color: AppColors.uberBlack,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 11,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ],
+                                ),
                               ),
                               const SizedBox(height: 14),
                               if (state.selectedDrop == null)
@@ -415,12 +634,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   List<Polyline> _buildPolylines(BookingInitial state) {
     if (state.selectedDrop == null) return [];
+    final points =
+        (state.previewRoute != null && state.previewRoute!.isNotEmpty)
+        ? state.previewRoute!
+        : [state.pickup.coordinates, state.selectedDrop!.coordinates];
     return [
-      Polyline(
-        points: [state.pickup.coordinates, state.selectedDrop!.coordinates],
-        color: AppColors.primary,
-        strokeWidth: 4.5,
-      ),
+      Polyline(points: points, color: AppColors.primary, strokeWidth: 4.5),
     ];
   }
 

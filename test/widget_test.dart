@@ -46,9 +46,9 @@ void main() {
     });
 
     test(
-      'MockData contains required 5 drop locations, 4 vehicles, and 6 history items',
+      'MockData contains required 6 drop locations, 4 vehicles, and 6 history items',
       () {
-        expect(MockData.dummyLocations.length, equals(5));
+        expect(MockData.dummyLocations.length, equals(6));
         expect(MockData.vehicleCategories.length, equals(4));
         expect(MockData.dummyRideHistory.length, equals(6));
       },

@@ -8,6 +8,7 @@ class BookingInitial extends BookingState {
   final List<VehicleCategory> vehicleCategories;
   final RideLocation? selectedDrop;
   final VehicleCategory? selectedVehicle;
+  final List<LatLng>? previewRoute;
 
   BookingInitial({
     required this.pickup,
@@ -15,6 +16,7 @@ class BookingInitial extends BookingState {
     required this.vehicleCategories,
     this.selectedDrop,
     this.selectedVehicle,
+    this.previewRoute,
   });
 
   double get currentFare {
@@ -28,6 +30,7 @@ class BookingInitial extends BookingState {
     List<VehicleCategory>? vehicleCategories,
     RideLocation? selectedDrop,
     VehicleCategory? selectedVehicle,
+    List<LatLng>? previewRoute,
     bool clearDrop = false,
   }) {
     return BookingInitial(
@@ -36,6 +39,7 @@ class BookingInitial extends BookingState {
       vehicleCategories: vehicleCategories ?? this.vehicleCategories,
       selectedDrop: clearDrop ? null : (selectedDrop ?? this.selectedDrop),
       selectedVehicle: selectedVehicle ?? this.selectedVehicle,
+      previewRoute: clearDrop ? null : (previewRoute ?? this.previewRoute),
     );
   }
 }

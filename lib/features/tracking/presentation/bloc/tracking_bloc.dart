@@ -51,13 +51,32 @@ class TrackingBloc extends Bloc<TrackingEvent, TrackingState> {
     });
   }
 
+  List<LatLng> _generateNavigationSteps(List<LatLng> waypoints, int targetCount) {
+    if (waypoints.isEmpty) return [];
+    if (waypoints.length == 1) return waypoints;
+
+    if (waypoints.length >= targetCount) {
+      final sampled = <LatLng>[];
+      final stepSize = (waypoints.length - 1) / (targetCount - 1);
+      for (int i = 0; i < targetCount; i++) {
+        final index = (i * stepSize).round().clamp(0, waypoints.length - 1);
+        sampled.add(waypoints[index]);
+      }
+      return sampled;
+    } else {
+      final subPointsPerSegment =
+          (targetCount / (waypoints.length - 1)).ceil().clamp(1, 10);
+      return PolylineUtils.generateSubPoints(waypoints, subPointsPerSegment);
+    }
+  }
+
   void _startDriverToPickupAnimation(Trip trip, Driver driver) {
     _cancelMovementTimer();
     final waypoints = trip.pathDriverToPickup;
-    final smoothSteps = PolylineUtils.generateSubPoints(waypoints, 4);
+    final smoothSteps = _generateNavigationSteps(waypoints, 14);
     int step = 0;
 
-    _movementTimer = Timer.periodic(const Duration(milliseconds: 1200), (
+    _movementTimer = Timer.periodic(const Duration(milliseconds: 800), (
       timer,
     ) {
       if (isClosed) {
@@ -145,7 +164,7 @@ class TrackingBloc extends Bloc<TrackingEvent, TrackingState> {
     _cancelAllTimers();
 
     final waypoints = s.trip.pathPickupToDrop;
-    final smoothSteps = PolylineUtils.generateSubPoints(waypoints, 5);
+    final smoothSteps = _generateNavigationSteps(waypoints, 28);
     int step = 0;
 
     // Emit initial in-progress state
@@ -159,7 +178,7 @@ class TrackingBloc extends Bloc<TrackingEvent, TrackingState> {
       ),
     );
 
-    _movementTimer = Timer.periodic(const Duration(milliseconds: 1200), (
+    _movementTimer = Timer.periodic(const Duration(milliseconds: 750), (
       timer,
     ) {
       if (isClosed) {

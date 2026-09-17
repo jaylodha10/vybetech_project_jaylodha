@@ -34,7 +34,10 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
         }
         final carPos = _getCarPosition(state);
         if (carPos != null) {
-          _mapController.move(carPos, 15.5);
+          _mapController.move(
+            LatLng(carPos.latitude - 0.0035, carPos.longitude),
+            15.5,
+          );
         }
       },
       builder: (context, state) {
@@ -77,14 +80,30 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
                           'com.example.vybetech_project_jaylodha',
                       tileBuilder: isDark
                           ? (context, tileWidget, tile) => ColorFiltered(
-                                colorFilter: const ColorFilter.matrix([
-                                  -0.75, 0, 0, 0, 255,
-                                  0, -0.75, 0, 0, 255,
-                                  0, 0, -0.75, 0, 255,
-                                  0, 0, 0, 1, 0,
-                                ]),
-                                child: tileWidget,
-                              )
+                              colorFilter: const ColorFilter.matrix([
+                                -0.75,
+                                0,
+                                0,
+                                0,
+                                255,
+                                0,
+                                -0.75,
+                                0,
+                                0,
+                                255,
+                                0,
+                                0,
+                                -0.75,
+                                0,
+                                255,
+                                0,
+                                0,
+                                0,
+                                1,
+                                0,
+                              ]),
+                              child: tileWidget,
+                            )
                           : null,
                     ),
                     if (_buildPolylines(state, trip).isNotEmpty)
@@ -183,7 +202,7 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> {
                   alignment: Alignment.bottomCenter,
                   child: Container(
                     constraints: BoxConstraints(
-                      maxHeight: MediaQuery.of(context).size.height * 0.58,
+                      maxHeight: MediaQuery.of(context).size.height * 0.42,
                     ),
                     padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
                     decoration: BoxDecoration(

@@ -18,6 +18,24 @@ class RideLocation extends Equatable {
     required this.etaMinutes,
   });
 
+  RideLocation copyWith({
+    String? id,
+    String? title,
+    String? subtitle,
+    LatLng? coordinates,
+    double? distanceKm,
+    int? etaMinutes,
+  }) {
+    return RideLocation(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      subtitle: subtitle ?? this.subtitle,
+      coordinates: coordinates ?? this.coordinates,
+      distanceKm: distanceKm ?? this.distanceKm,
+      etaMinutes: etaMinutes ?? this.etaMinutes,
+    );
+  }
+
   @override
   List<Object?> get props => [
     id,

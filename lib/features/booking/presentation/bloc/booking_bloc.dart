@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:latlong2/latlong.dart';
 import '../../../../shared/models/ride_location.dart';
 import '../../../../shared/models/trip.dart';
 import '../../../../shared/models/vehicle_category.dart';
@@ -31,19 +32,24 @@ class BookingBloc extends Bloc<BookingEvent, BookingState> {
   ) async {
     try {
       final gpsPickup = await bookingRepository.fetchCurrentLocation().timeout(
-        const Duration(seconds: 3),
+        const Duration(seconds: 4),
       );
       if (!isClosed && state is BookingInitial) {
         final current = state as BookingInitial;
-        emit(current.copyWith(pickup: gpsPickup));
+        final dynamicDrops =
+            bookingRepository.getDropLocationsFor(gpsPickup.coordinates);
+        emit(current.copyWith(
+          pickup: gpsPickup,
+          dropLocations: dynamicDrops,
+        ));
       }
     } catch (_) {}
   }
 
-  void _onDropSelected(
+  Future<void> _onDropSelected(
     BookingDropLocationSelected event,
     Emitter<BookingState> emit,
-  ) {
+  ) async {
     if (state is! BookingInitial) return;
     final current = state as BookingInitial;
     emit(
@@ -53,6 +59,26 @@ class BookingBloc extends Bloc<BookingEvent, BookingState> {
             current.selectedVehicle ?? current.vehicleCategories.first,
       ),
     );
+
+    try {
+      final routeResult = await bookingRepository.routingService.getRoadRoute(
+        current.pickup.coordinates,
+        event.location.coordinates,
+      );
+      if (!isClosed && state is BookingInitial) {
+        final latest = state as BookingInitial;
+        if (latest.selectedDrop?.id == event.location.id) {
+          emit(latest.copyWith(
+            previewRoute: routeResult.coordinates,
+            selectedDrop: latest.selectedDrop?.copyWith(
+              distanceKm: routeResult.distanceKm > 0
+                  ? routeResult.distanceKm
+                  : latest.selectedDrop!.distanceKm,
+            ),
+          ));
+        }
+      }
+    } catch (_) {}
   }
 
   void _onDropCleared(
@@ -81,7 +107,7 @@ class BookingBloc extends Bloc<BookingEvent, BookingState> {
     final current = state as BookingInitial;
     if (current.selectedDrop == null || current.selectedVehicle == null) return;
 
-    final trip = bookingRepository.createTrip(
+    final trip = await bookingRepository.createTripAsync(
       pickup: current.pickup,
       drop: current.selectedDrop!,
       vehicleCategory: current.selectedVehicle!,

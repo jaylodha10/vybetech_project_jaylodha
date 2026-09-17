@@ -5,57 +5,65 @@ import '../../../../shared/models/ride_location.dart';
 import '../../../../shared/models/vehicle_category.dart';
 
 class MockData {
-  // Pickup Point (BKC, Mumbai)
+  // Pickup Point (Chetak Circle, Udaipur)
   static const RideLocation defaultPickup = RideLocation(
     id: 'loc_pickup',
-    title: 'Current Location (BKC Hub)',
-    subtitle: 'Bandra Kurla Complex, Bandra East, Mumbai',
-    coordinates: LatLng(19.0660, 72.8687),
+    title: 'Current Location (Chetak Circle)',
+    subtitle: 'Chetak Circle, Madhuban, Udaipur, Rajasthan',
+    coordinates: LatLng(24.5854, 73.6879),
     distanceKm: 0.0,
     etaMinutes: 0,
   );
 
-  // 5 Hardcoded Drop Locations as specified
+  // 6 Curated Drop Locations in Udaipur
   static const List<RideLocation> dummyLocations = [
     RideLocation(
       id: 'loc_1',
-      title: 'Chhatrapati Shivaji Airport (T2)',
-      subtitle: 'Terminal 2, Sahar, Andheri East, Mumbai',
-      coordinates: LatLng(19.0896, 72.8656),
-      distanceKm: 8.5,
-      etaMinutes: 18,
+      title: 'Fateh Sagar Lake (Paal)',
+      subtitle: 'Fateh Sagar Paal, Rani Road, Udaipur',
+      coordinates: LatLng(24.6025, 73.6738),
+      distanceKm: 5.5,
+      etaMinutes: 14,
     ),
     RideLocation(
       id: 'loc_2',
-      title: 'Cyber City Tech Park',
-      subtitle: 'Mindspace IT Park, Airoli / Thane Link',
-      coordinates: LatLng(19.0760, 72.8777),
-      distanceKm: 5.2,
-      etaMinutes: 12,
+      title: 'Maharana Pratap Airport (Dabok)',
+      subtitle: 'NH 76, Dabok, Udaipur, Rajasthan',
+      coordinates: LatLng(24.6177, 73.8961),
+      distanceKm: 21.0,
+      etaMinutes: 32,
     ),
     RideLocation(
       id: 'loc_3',
-      title: 'Grand Central Mall Kurla',
-      subtitle: 'LBS Marg, Kurla West, Mumbai',
-      coordinates: LatLng(19.0680, 72.8800),
-      distanceKm: 3.8,
+      title: 'City Palace & Lake Pichola',
+      subtitle: 'Old City, Udaipur, Rajasthan',
+      coordinates: LatLng(24.5764, 73.6835),
+      distanceKm: 2.8,
       etaMinutes: 9,
     ),
     RideLocation(
       id: 'loc_4',
-      title: 'Dadar Central Station',
-      subtitle: 'Platform 1 Rd, Dadar East, Mumbai',
-      coordinates: LatLng(19.0178, 72.8478),
-      distanceKm: 9.1,
-      etaMinutes: 22,
+      title: 'Celebration Mall (Bhuwana)',
+      subtitle: 'NH 8, Bhuwana, Udaipur, Rajasthan',
+      coordinates: LatLng(24.6142, 73.7078),
+      distanceKm: 4.8,
+      etaMinutes: 12,
     ),
     RideLocation(
       id: 'loc_5',
-      title: 'Juhu Beachfront Heights',
-      subtitle: 'Juhu Tara Road, Vile Parle West, Mumbai',
-      coordinates: LatLng(19.1075, 72.8263),
-      distanceKm: 11.4,
-      etaMinutes: 28,
+      title: 'Saheliyon Ki Bari',
+      subtitle: 'Saheli Marg, New Fatehpura, Udaipur',
+      coordinates: LatLng(24.6006, 73.6872),
+      distanceKm: 3.0,
+      etaMinutes: 8,
+    ),
+    RideLocation(
+      id: 'loc_6',
+      title: 'Udaipur City Railway Station',
+      subtitle: 'Station Rd, Jawahar Nagar, Udaipur',
+      coordinates: LatLng(24.5732, 73.6983),
+      distanceKm: 2.5,
+      etaMinutes: 7,
     ),
   ];
 
@@ -112,27 +120,25 @@ class MockData {
     totalTrips: 1420,
     carModel: 'White Swift Dzire',
     carColor: 'Pearl White',
-    carNumber: 'MH 02 CZ 4892',
+    carNumber: 'RJ 27 CZ 4892',
     phoneNumber: '+91 98765 43210',
   );
 
-  // Path 1: Driver approaching pickup location (BKC Hub)
+  // Path 1: Driver approaching pickup location (Chetak Circle, Udaipur)
   static const List<LatLng> driverToPickupRoute = [
-    LatLng(19.0600, 72.8620),
-    LatLng(19.0620, 72.8640),
-    LatLng(19.0640, 72.8660),
-    LatLng(19.0650, 72.8675),
-    LatLng(19.0660, 72.8687), // Pickup point
+    LatLng(24.5800, 73.6820),
+    LatLng(24.5820, 73.6840),
+    LatLng(24.5840, 73.6860),
+    LatLng(24.5854, 73.6879), // Pickup point
   ];
 
-  // Path 2: Pickup location to Drop location (Airport T2)
+  // Path 2: Pickup location to Drop location (Fateh Sagar Lake, Udaipur)
   static const List<LatLng> pickupToDropRoute = [
-    LatLng(19.0660, 72.8687), // Pickup point
-    LatLng(19.0710, 72.8680),
-    LatLng(19.0750, 72.8670),
-    LatLng(19.0800, 72.8665),
-    LatLng(19.0850, 72.8660),
-    LatLng(19.0896, 72.8656), // Airport T2
+    LatLng(24.5854, 73.6879), // Chetak Circle
+    LatLng(24.5890, 73.6850),
+    LatLng(24.5930, 73.6810),
+    LatLng(24.5970, 73.6780),
+    LatLng(24.6025, 73.6738), // Fateh Sagar
   ];
 
   // 6 Past Rides for History Screen
